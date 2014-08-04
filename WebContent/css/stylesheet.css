@@ -1,0 +1,40 @@
+.fader{
+	border: 1px black dashed;
+	/* Rotate slider -90deg, stretch length, and shift so it's inside channel_strip */
+	/*
+	-webkit-transform:rotate(-90deg);
+	-webkit-transform:translate(100,0);
+	*/
+	/*-webkit-transform:matrix(2,-1,-1,1,100,0);*/
+}
+.channel_strip{	
+	float:left;
+	border:1px solid black;
+}
+
+.label{
+	width:86%;
+	margin:5px;
+	padding:5px;
+	text-align:center;
+	border: 1px solid black;
+	border-radius:5%; 
+	font-size: 1.2em;
+	font-family: Impact, sans-serif;
+}
+
+.mute{
+	margin:10px;
+	float:left;
+}
+
+.solo{
+	margin:10px;
+	float:right;
+}
+
+#mixer{
+	border:1px solid black;
+	padding:10px;
+	float:bottom;
+}
