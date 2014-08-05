@@ -1,40 +1,119 @@
-.fader{
-	border: 1px black dashed;
-	/* Rotate slider -90deg, stretch length, and shift so it's inside channel_strip */
-	/*
-	-webkit-transform:rotate(-90deg);
-	-webkit-transform:translate(100,0);
-	*/
-	/*-webkit-transform:matrix(2,-1,-1,1,100,0);*/
+
+/*the background color you can delete or comment out, its just to show what I'm doing.*/
+body {
+/*	styles used everywhere. */
+	background-color: orange;
+/*	not going anywhere!  But not sure on viewport stuff how this works.*/
+	display: fixed;
+/*	Is impact web safe?  Include others that are easy to find.*/
+	font-family: impact, helvetica, arial, sans-serif;
+	font-size: 1.2em;
+	line-height: 1.4em;
+	/*You could set the basis for what your em is in the font size, but this works.*/
+	color: black;
+/*	font color.*/
+
 }
-.channel_strip{	
-	float:left;
+/*contain everything, get rid of padding and margin.*/
+.container {
+/*	Stretch edge to edge, no margin or padding.*/
+	background-color: red;
+	width: 100%;
+	min-height: 300px;
+	margin: 0;
+	padding: 0;
+
+}
+
+.row {
+/*	contain the control boxes and align them horizontally.*/
+	background-color: blue;
+	display: block;
+	width: 100%;
+	padding: 15px;
+	margin: 15px;
+}
+
+.control-box{
+/*	Line up everything horizontally, work as a container for your tools.*/
+	background-color: white;
+	display: inline-block;
+	/*Position overlays over fixed element, like a layer.*/
+	position: relative;
+	width: 200px;
+	height: 200px;
+/*	give each item some spacing between on the left side only.*/
+	margin: 0 0 0 15px;
+
+}
+
+.channel_strip{
+/*	in conjunction with the control box positioning, you can specify coordinates.*/
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	background-color: yellow;
 	border:1px solid black;
+	width: 50px;
+	height: 200px;
+	margin: 0;
+	padding: 0;
+}
+
+input[type="range"] {
+/*I discovered you had slider-horizontal, went out on a limb, it worked.
+Included moz, opera and default for cross browser issues and
+noted I could take the styling out of the HTML for the stops and starts.
+You could also specify color with a hexidecimal (eg. #e2e2e2) or
+a websafe color like I've used all over the place here.
+Position also absolute to the descendent, in this case which would
+be channel strip, which inherits from control box.*/
+appearance: slider-vertical;
+-moz-appearance: slider-vertical;
+-o-appearance: slider-vertical;
+-webkit-appearance: slider-vertical;
+padding: initial;
+border: initial;
+margin: 10px;
+color: rgb(144, 144, 144);
+width: 30px;
+height: 180px;
+position: absolute;
+bottom: 0;
+left: 0;
+min: 0;
+max: 1;
+value: 0;
+step: .01;
 }
 
 .label{
-	width:86%;
-	margin:5px;
-	padding:5px;
+/*	Same positioning notes as before. Gave some margin/padding for fun.*/
+	background-color: green;
+	position: absolute;
+	top: 10px;
+	left: 50px;
+	width:140px;
+	height: 140px;
+	margin: 0 5px;
+	padding:0px;
 	text-align:center;
 	border: 1px solid black;
-	border-radius:5%; 
-	font-size: 1.2em;
-	font-family: Impact, sans-serif;
+	border-radius:5%;
+
 }
 
 .mute{
-	margin:10px;
-	float:left;
+	/*	Same positioning notes as before.  You could maybe style these too more if you want. */
+	position: absolute;
+	bottom: 10px;
+	left: 60px;
 }
 
 .solo{
-	margin:10px;
-	float:right;
-}
+	/*	Same positioning notes as before. You could maybe style these too more if you want. */
+	position: absolute;
+	bottom: 10px;
+	right: 30px;
 
-#mixer{
-	border:1px solid black;
-	padding:10px;
-	float:bottom;
 }
