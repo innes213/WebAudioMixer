@@ -2,101 +2,116 @@
 /*the background color you can delete or comment out, its just to show what I'm doing.*/
 body {
 /*	styles used everywhere. */
-	background-color: orange;
+	background-color: black;
 /*	not going anywhere!  But not sure on viewport stuff how this works.*/
 	display: fixed;
-/*	Is impact web safe?  Include others that are easy to find.*/
-	font-family: impact, helvetica, arial, sans-serif;
-	font-size: 1.2em;
+	font-family: helvetica, arial, sans-serif;
+	font-size: .8em;
 	line-height: 1.4em;
 	/*You could set the basis for what your em is in the font size, but this works.*/
 	color: black;
 /*	font color.*/
+	margin:0;
+	padding:0;
 
 }
 /*contain everything, get rid of padding and margin.*/
 .container {
-/*	Stretch edge to edge, no margin or padding.*/
-	background-color: red;
+/*	Stretch edge to edge, no margin.*/
+	background-color: #a4a4a4;;
 	width: 100%;
-	min-height: 300px;
+	/*min-width: 500px;
+	min-height: 500px;
+	*/
+	height:100%;
 	margin: 0;
-	padding: 0;
+	/* Add some padding so edges don't get cut off. */
+	padding: 5px;
 
 }
 
-.row {
-/*	contain the control boxes and align them horizontally.*/
-	background-color: blue;
+.mixer {
+/*	contain the channel strips and align them horizontally.*/
+	background-color: #343434;
 	display: block;
-	width: 100%;
+	position:relative;
+	bottom:0px;
+	width: 380px;
 	padding: 15px;
-	margin: 15px;
-}
-
-.control-box{
-/*	Line up everything horizontally, work as a container for your tools.*/
-	background-color: white;
-	display: inline-block;
-	/*Position overlays over fixed element, like a layer.*/
-	position: relative;
-	width: 200px;
-	height: 200px;
-/*	give each item some spacing between on the left side only.*/
-	margin: 0 0 0 15px;
-
+	margin: 0px;
+	border-radius:15px;
 }
 
 .channel_strip{
-/*	in conjunction with the control box positioning, you can specify coordinates.*/
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	background-color: yellow;
-	border:1px solid black;
-	width: 50px;
-	height: 200px;
+/*	Line up everything horizontally, work as a container for your tools.*/
+	background-color: #111111;
+	display: inline-block;
+	/*Position overlays over fixed element, like a layer.*/
+	position: relative;
+	width: 72px;
+	height: 300px; 
+
+}
+.meter{
+	top:0px;
+	width:32px;
+	height:50px;
+	margin: 3px 20px 5px 20px;
+	border:1px #bfbfbf solid;
+	border-radius:5px;
+	background-color: #220022;
+}
+.fader{
+/*	in conjunction with the mixer positioning, you can specify coordinates.*/
+	background-color: #990099;
+	border-radius:6px;
+	border:1px solid #0f0f0f;
+	width: 70px;
+	height: 150px;
 	margin: 0;
-	padding: 0;
 }
 
 input[type="range"] {
 /*I discovered you had slider-horizontal, went out on a limb, it worked.
-Included moz, opera and default for cross browser issues and
+Included moz, opera and default for cross bmixerser issues and
 noted I could take the styling out of the HTML for the stops and starts.
 You could also specify color with a hexidecimal (eg. #e2e2e2) or
 a websafe color like I've used all over the place here.
 Position also absolute to the descendent, in this case which would
-be channel strip, which inherits from control box.*/
+be fader, which inherits from channel strip.*/
 appearance: slider-vertical;
 -moz-appearance: slider-vertical;
 -o-appearance: slider-vertical;
 -webkit-appearance: slider-vertical;
 padding: initial;
 border: initial;
-margin: 10px;
-color: rgb(144, 144, 144);
-width: 30px;
-height: 180px;
-position: absolute;
-bottom: 0;
-left: 0;
+margin: 15px;
+/* This doesn't appear to do anything
+color: green;
+*/
+width: 45px;
+height: 120px;
+/* These paramenters are ignored when taken out of the HTML
 min: 0;
-max: 1;
+max: 100;
 value: 0;
-step: .01;
+step: 1;
+*/ 
 }
 
+.lower-controls{
+	position:relative;
+	width:100%;
+	height:75px;
+	bottom:0px;
+	background-color:#111111;
+}
 .label{
-/*	Same positioning notes as before. Gave some margin/padding for fun.*/
-	background-color: green;
-	position: absolute;
-	top: 10px;
-	left: 50px;
-	width:140px;
-	height: 140px;
-	margin: 0 5px;
-	padding:0px;
+/* Label goes directly below the fader */
+	background-color: rgb(128, 128, 255);
+	width:58px;
+	height: 40px;
+	margin: 10px 6px 15px 6px;
 	text-align:center;
 	border: 1px solid black;
 	border-radius:5%;
@@ -104,16 +119,13 @@ step: .01;
 }
 
 .mute{
-	/*	Same positioning notes as before.  You could maybe style these too more if you want. */
-	position: absolute;
-	bottom: 10px;
-	left: 60px;
+	position:absolute;
+	bottom:5px;
+	left:5px;
 }
 
 .solo{
-	/*	Same positioning notes as before. You could maybe style these too more if you want. */
-	position: absolute;
-	bottom: 10px;
-	right: 30px;
-
+	position:absolute;
+	bottom:5px;
+	right:5px;
 }
