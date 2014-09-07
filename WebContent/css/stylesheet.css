@@ -2,7 +2,7 @@
 /*the background color you can delete or comment out, its just to show what I'm doing.*/
 body {
 /*	styles used everywhere. */
-	background-color: black;
+	background-color: #808080;
 /*	not going anywhere!  But not sure on viewport stuff how this works.*/
 	display: fixed;
 	font-family: helvetica, arial, sans-serif;
@@ -17,8 +17,8 @@ body {
 }
 /*contain everything, get rid of padding and margin.*/
 .container {
-/*	Stretch edge to edge, no margin.*/
-	background-color: #a4a4a4;;
+/*	Stretch edge to edge, no margin.
+	background-color: #a4a4a4;*/
 	width: 100%;
 	/*min-width: 500px;
 	min-height: 500px;
@@ -36,7 +36,9 @@ body {
 	display: block;
 	position:relative;
 	bottom:0px;
-	width: 380px;
+	/* This is now changed in JS 
+	width: 380px; 
+	*/
 	padding: 15px;
 	margin: 0px;
 	border-radius:15px;
@@ -91,7 +93,7 @@ color: green;
 */
 width: 45px;
 height: 120px;
-/* These paramenters are ignored when taken out of the HTML
+/* These parameters are ignored when taken out of the HTML
 min: 0;
 max: 100;
 value: 0;
@@ -108,7 +110,7 @@ step: 1;
 }
 .label{
 /* Label goes directly below the fader */
-	background-color: rgb(128, 128, 255);
+	background-color: #8080FF;
 	width:58px;
 	height: 40px;
 	margin: 10px 6px 15px 6px;
@@ -122,10 +124,14 @@ step: 1;
 	position:absolute;
 	bottom:5px;
 	left:5px;
+	color:#bbbbbb;
+	background-color:#663333;
 }
 
 .solo{
 	position:absolute;
 	bottom:5px;
 	right:5px;
+	color:#bbbbbb;
+	background-color:#666633;
 }

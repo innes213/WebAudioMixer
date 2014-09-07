@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1">
 <!-- SEO stuff.  And descriptions. -->
 <meta name="keywords" content="Rob Hislop, HTML 5 mixer">
-<meta name="description" content="Rob is Super Cool.">
+<meta name="description" content="HTML5 is Super Cool.">
 <link rel="stylesheet" type="text/css" href="css/stylesheet.css">
 </head>
 <body>
@@ -15,95 +15,22 @@
 <div class="container">
 	<div class="title_block">
 		<h1>WebAudio Mixer</h1>
-		<h3>An HTML5 browser-based mixer example<h3>
+		<h3>An HTML5 browser-based mixer example</h3>
 		<p>Rob Hislop robinneshislop@gmail.com</p>
+		<div xmlns:cc="http://creativecommons.org/ns#" about="urn:sha1:5PWIJKHKWK6GJZBCKSG4RUNVUGPNXCJV">
+			<a rel="cc:attributionURL" property="cc:attributionName" href="http://ccmixter.org/files/unreal_dm/45426"> unreal_dm</a>
+			<a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">CC BY-NC 3.0</a>
+		</div>
 	</div>
 	<div class="transport">
 		<div class="controls">
-			<button id="play">Play</button>
+			<button id="play" onclick="WebMixer.play()">Play</button>
 			<button id="pause">Pause</button>
-			<button id="stop">Stop</button>
+			<button id="stop" onclick="WebMixer.stop()">Stop</button>
 		</div>
 	</div>
-	<div class="mixer">
-
-		<div class="channel_strip">
-			<div class="meter">
-			</div>
-			<div class="fader">
-				<input type="range" min="0" max ="1" step="0.01" value="0">
-			</div>
-			<div class="lower-controls">
-				<div class="label">
-					<p>label</p>
-				</div>
-				<button class="mute">M</button>
-				<button class="solo">S</button>
-			</div>
-		</div>
-
-		<div class="channel_strip">
-			<div class="meter">
-			</div>		
-			<div class="fader">
-				<input type="range" min="0" max ="1" step="0.01" value="0">
-			</div>
-			<div class="lower-controls">
-				<div class="label">
-					<p>label</p>
-				</div>
-				<button class="mute">M</button>
-				<button class="solo">S</button>
-			</div>
-		</div>
-
-		<div class="channel_strip">
-			<div class="meter">
-			</div>
-			<div class="fader">
-				<input type="range" min="0" max ="1" step="0.01" value="0">
-			</div>
-			<div class="lower-controls">
-				<div class="label">
-					<p>label</p>
-				</div>
-				<button class="mute">M</button>
-				<button class="solo">S</button>
-			</div>
-		</div>
-
-		<div class="channel_strip">
-			<div class="meter">
-			</div>		
-			<div class="fader">
-				<input type="range" min="0" max="1" step="0.01" value="0">
-			</div>
-			<div class="lower-controls">
-				<div class="label">
-					<p>label</p>
-				</div>
-				<button class="mute">M</button>
-				<button class="solo">S</button>
-			</div>
-		</div>
-
-		<div class="channel_strip">
-			<div class="meter">
-			</div>
-			<div class="fader">
-				<input type="range" min="0" max ="1" step="0.01" value="0">
-			</div>
-			<div class="lower-controls">
-				<div class="label">
-					<p>label</p>
-				</div>
-				<button class="mute">M</button>
-				<button class="solo">S</button>
-			</div>
-		</div>
-
-	</div>
-
 </div>
 
+<script src="./scripts/main.js"></script>
+<script src="./scripts/buffer-loader.js"></script>
 </body>
