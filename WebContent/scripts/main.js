@@ -12,13 +12,13 @@ var bufferLoader;
 var loadedSources;		// 
 var sources = [];		// Array of audio sources
 var sourceCount = 0;	// Count of audio sources
-var inputList = [];		// List of input labels
 	
 //TODO: Create new loops
-var inputs = { drums : './audio/guitar.mp3',
-              bass   : './audio/guitar.mp3',
-              guitar : './audio/guitar.mp3',
-              horn   : './audio/guitar.mp3'};
+var inputs = { drums:"./audio/guitar.mp3",
+              bass:"./audio/guitar.mp3",
+              guitar:"./audio/guitar.mp3",
+              horn:"./audio/guitar.mp3"
+		};
 var sources = [];
 var mixer = 0;
 
@@ -32,46 +32,84 @@ function init() {
   mixer = new WebMixer(a); 
   // Load files, add channel strips
   for (var key in inputs){
-	  bufferLoader = new BufferLoader(
+	  console.log(key + ' : ' + inputs[key]);
+	/*  bufferLoader = new BufferLoader(
 			    a,
 			    inputs[key],
 			    finishedLoading
 			    );
 	  bufferLoader.load();
-	  mixer.addChannelStrip(a,sources[sourceCount],key);
+	  */
+	  mixer.addChannelStrip(a,key); //TODO: addChannelStrip should return the strip
+	  //mixer.routeChannelStrip(a,key,sources[sourceCount],mixer.channelStrips['master'].analyserNode);
   }
   console.log(a.destination);
 }
 
-function WebMixer(audioContext) {
-	this.aC = audioContext;
+function WebMixer(context) {
+	//this.aC = context;
 	this.channelStrips = {};	// Hash table of channel strips
 	this.createMixerUI();
-	this.addChannelStrip(this.ac, null, 'master');
+	this.soloChannels = [];
+	this.mixerWidth = 00;
+	this.csWidth = 0;
+
+	// Create a channel strip and add it to the hash
+	this.addChannelStrip(context,'master');
+	//this.routeChannelStrip(this.channelStrips['master'], null, context.destination);
 }
 
-WebMixer.prototype.addChannelStrip = function(context, inputSource, label) {
-	// Create a channel strip and add it to the hash
-	this.channelStrips[label] = new ChannelStrip(context, inputSource, label);
+WebMixer.prototype.addChannelStrip= function(context,label) {
+	// Create a channel strip and add it to the mixer
+	this.channelStrips[label] = new ChannelStrip(context,label);
+	
+	// Update the mixer document object width
+	if (this.csWidth == 0) {
+		this.csWidth = $(".channel_strip").css("width");
+		this.csWidth = parseInt(this.csWidth.slice(0,this.csWidth.length - 2));
+		console.log(this.csWidth);
+	}
+	
+	this.mixerWidth += this.csWidth;
+	$("#mixer").css("width","" + this.mixerWidth + "px");
+	console.log(this.mixerWidth);
 }
 
 WebMixer.prototype.createMixerUI = function () {
 	// Insert mixer div
 	var mixDiv = document.createElement('div');
 	mixDiv.className = 'mixer';
+	mixDiv.id = 'mixer'; // Might add support for multiple mixers
 	document.getElementsByClassName('container')[0].appendChild(mixDiv);
 }
 
-function ChannelStrip(context, inputSource, label){
-	this.analyserNode = null;
-	this.gainNode = null;
+WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destination) {
+	if (source)
+		source.connect(channelStrip.analyserNode);
+	if (destination)
+		channelStrip.muteNode.connect(destination);
+}
+
+function ChannelStrip(context,label) {
+	
+	// Create elements
+	//TODO: find a way to create AudioNodes without using global variable (this isn't modular)
+	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.defaultGain = 0;
+	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.muted = false;
 	this.solod = false;
+	
+	// Connect elements
+	this.analyserNode.connect(this.gainNode);
+	this.gainNode.connect(this.muteNode);
+	
+	// Draw channel strip
 	this.createChannelStripUI(label);
 } 
 
-ChannelStrip.prototype.createChannelStripUI = function (desc) {
+ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	// Create channel strip UI
 	/*
  		<div class="channel_strip" id="master">
@@ -135,11 +173,13 @@ ChannelStrip.prototype.createChannelStripUI = function (desc) {
 	lcDiv.appendChild(sButton);
 	
 	csDiv.appendChild(lcDiv);
-	
-	document.getElementsByClassName('mixer')[0].appendChild(csDiv);
-	
-	// Create AudioNodes
-	// Connect buffer to nodes, nodes to Master channel strip
+	var masterDiv = document.getElementById('master');
+	if (!masterDiv) {
+		document.getElementById('mixer').appendChild(csDiv);
+		
+	} else {
+		document.getElementById('mixer').insertBefore(csDiv,masterDiv);
+	}
 }
 
 function finishedLoading(bufferList) {
@@ -149,14 +189,9 @@ function finishedLoading(bufferList) {
 		
 		sources[sourceCount] = a.createBufferSource();
 		sources[sourceCount++].buffer = bufferList[i];
+		console.log(sourceCount + "source loaded successfully")
 
 	}
-	/*
-	// Use this in addChannelStrip
-	gainNode = a.createGain ? a.createGain() : a.createGainNode();
-	source.connect(gainNode);
-	gainNode.connect(a.destination);
-	*/
 }
 /*
 
