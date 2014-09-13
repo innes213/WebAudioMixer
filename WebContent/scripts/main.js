@@ -9,17 +9,18 @@
 window.onload = init;
 var a;
 var bufferLoader;
-var loadedSources;		// 
-var sources = [];		// Array of audio sources
-var sourceCount = 0;	// Count of audio sources
+var bufferLoadCount = 0;	 
+var sourceHash = {};		// Hash of audio sources
 	
 //TODO: Create new loops
-var inputs = { drums:"./audio/guitar.mp3",
-              bass:"./audio/guitar.mp3",
+var inputs = { drums:"./audio/drums.mp3",
+              bass:"./audio/bass.mp3",
               guitar:"./audio/guitar.mp3",
-              horn:"./audio/guitar.mp3"
+              horn:"./audio/horns.mp3"
 		};
-var sources = [];
+var inputCount = 0;
+for (var key in inputs)
+	inputCount++;
 var mixer = 0;
 
 
@@ -29,34 +30,39 @@ function init() {
   a = new AudioContext();
   
   // Create mixer
+  displayStatus("Creating a mixer...")
   mixer = new WebMixer(a); 
+  
   // Load files, add channel strips
-  for (var key in inputs){
-	  console.log(key + ' : ' + inputs[key]);
-	/*  bufferLoader = new BufferLoader(
+  // Load one at a time to guarantee order
+  for (key in inputs) {
+	  displayStatus("Loading " + key + " file into buffer...")
+	  var bufferHash = {};
+	  bufferHash[key] = inputs[key];
+	  bufferLoader = new BufferLoader(
 			    a,
-			    inputs[key],
+			    bufferHash,
 			    finishedLoading
 			    );
-	  bufferLoader.load();
-	  */
+	  // Ideally this would be done after buffers are loaded but doing so 
+	  // creates the channel strips in an arbitrary order
 	  mixer.addChannelStrip(a,key); //TODO: addChannelStrip should return the strip
-	  //mixer.routeChannelStrip(a,key,sources[sourceCount],mixer.channelStrips['master'].analyserNode);
+	  bufferLoader.load();
   }
   console.log(a.destination);
 }
 
 function WebMixer(context) {
-	//this.aC = context;
+	
 	this.channelStrips = {};	// Hash table of channel strips
 	this.createMixerUI();
 	this.soloChannels = [];
-	this.mixerWidth = 00;
+	this.mixerWidth = 0;
 	this.csWidth = 0;
 
 	// Create a channel strip and add it to the hash
 	this.addChannelStrip(context,'master');
-	//this.routeChannelStrip(this.channelStrips['master'], null, context.destination);
+	this.routeChannelStrip(this.channelStrips['master'], null, context.destination);
 }
 
 WebMixer.prototype.addChannelStrip= function(context,label) {
@@ -67,12 +73,10 @@ WebMixer.prototype.addChannelStrip= function(context,label) {
 	if (this.csWidth == 0) {
 		this.csWidth = $(".channel_strip").css("width");
 		this.csWidth = parseInt(this.csWidth.slice(0,this.csWidth.length - 2));
-		console.log(this.csWidth);
 	}
 	
 	this.mixerWidth += this.csWidth;
 	$("#mixer").css("width","" + this.mixerWidth + "px");
-	console.log(this.mixerWidth);
 }
 
 WebMixer.prototype.createMixerUI = function () {
@@ -84,26 +88,32 @@ WebMixer.prototype.createMixerUI = function () {
 }
 
 WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destination) {
-	if (source)
-		source.connect(channelStrip.analyserNode);
-	if (destination)
-		channelStrip.muteNode.connect(destination);
+	if (source) {
+		console.log(source);
+	}
+	if (destination) {
+		console.log(destination);
+	}
 }
 
 function ChannelStrip(context,label) {
 	
 	// Create elements
-	//TODO: find a way to create AudioNodes without using global variable (this isn't modular)
 	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+	this.pannerNode = 0; //Not Implemented
 	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.defaultGain = 0;
 	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
-	this.muted = false;
-	this.solod = false;
-	
+	this.muted = false; //Not implemented
+	this.solod = false; //Not implemented
+		
 	// Connect elements
 	this.analyserNode.connect(this.gainNode);
 	this.gainNode.connect(this.muteNode);
+	
+	// Set initial values
+	this.gainNode.gain.value = this.defaultGain;
+	this.muteNode.gain.value = 1;
 	
 	// Draw channel strip
 	this.createChannelStripUI(label);
@@ -143,7 +153,7 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	faderInput.type = 'range';
 	faderInput.oninput = 'changeGain(this);';
 	faderInput.min = '0';
-	faderInput.max = '100';
+	faderInput.max = '200';
 	faderInput.step = '1';
 	faderInput.value = this.defaultGain.toString();
 	
@@ -182,15 +192,20 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	}
 }
 
-function finishedLoading(bufferList) {
+function finishedLoading(bufferHash) {
 	
 	// Create sources and connect to channel strips.
-	for (var i = 0; i < bufferList.length(); i++) {
-		
-		sources[sourceCount] = a.createBufferSource();
-		sources[sourceCount++].buffer = bufferList[i];
-		console.log(sourceCount + "source loaded successfully")
+	var key;
+	for (key in bufferHash) {
+		sourceHash[key] = a.createBufferSource();
 
+		sourceHash[key].buffer = bufferHash[key];
+		displayStatus(key + " source loaded successfully");
+				
+		mixer.routeChannelStrip(mixer.channelStrips[key],sourceHash[key],mixer.channelStrips['master'].analyserNode);
+		
+		if (++bufferLoadCount == inputCount)
+			displayStatus("Ready!");
 	}
 }
 /*
@@ -203,10 +218,6 @@ WebMixer.stop = function() {
 	source.stop();
 };
 
-WebMixer.channelStrips = [];
-WebMixer.createChannelStrip = function() {
-	
-};
 */
 function changeGain(element) {
 	  var volume = element.value;
@@ -215,18 +226,9 @@ function changeGain(element) {
 	  console.log(gainNode.gain.value);
 }
 
-/*
-function createSource(buffer) {
-	var source = a.createBufferSource();
-	var gainNode = a.createGain ? a.createGain() : a.createGainNode();
-	source.buffer = buffer;
-	source.loop = true;
-	source.connect(gainNode);
-	gainNode.connect(context.destination);
-	
-	return {
-		source: source, 
-		gainNode: gainNode
-	};
+function displayStatus(message) {
+	var output = "Status: " + message;
+	document.getElementById("status").innerHTML=output;
+	console.log(output);
 }
-*/
+

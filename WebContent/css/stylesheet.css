@@ -1,5 +1,4 @@
 
-/*the background color you can delete or comment out, its just to show what I'm doing.*/
 body {
 /*	styles used everywhere. */
 	background-color: #808080;
@@ -8,9 +7,7 @@ body {
 	font-family: helvetica, arial, sans-serif;
 	font-size: .8em;
 	line-height: 1.4em;
-	/*You could set the basis for what your em is in the font size, but this works.*/
 	color: black;
-/*	font color.*/
 	margin:0;
 	padding:0;
 
@@ -18,16 +15,21 @@ body {
 /*contain everything, get rid of padding and margin.*/
 .container {
 /*	Stretch edge to edge, no margin.
-	background-color: #a4a4a4;*/
 	width: 100%;
-	/*min-width: 500px;
-	min-height: 500px;
-	*/
 	height:100%;
 	margin: 0;
 	/* Add some padding so edges don't get cut off. */
 	padding: 5px;
 
+}
+.transport {
+	background-color: #343434;
+	display: block;
+	padding: 10px;
+	width: 280px;
+	border-radius: 8px;
+	font: bold;
+	color: #DDDDDD;
 }
 
 .mixer {
@@ -36,9 +38,6 @@ body {
 	display: block;
 	position:relative;
 	bottom:0px;
-	/* This is now changed in JS 
-	width: 380px; 
-	*/
 	padding: 15px;
 	margin: 0px;
 	border-radius:15px;
@@ -81,24 +80,18 @@ You could also specify color with a hexidecimal (eg. #e2e2e2) or
 a websafe color like I've used all over the place here.
 Position also absolute to the descendent, in this case which would
 be fader, which inherits from channel strip.*/
+
+/* Need to find equivalent instruction for other browsers
 appearance: slider-vertical;
 -moz-appearance: slider-vertical;
 -o-appearance: slider-vertical;
+*/
 -webkit-appearance: slider-vertical;
 padding: initial;
 border: initial;
 margin: 15px;
-/* This doesn't appear to do anything
-color: green;
-*/
 width: 45px;
 height: 120px;
-/* These parameters are ignored when taken out of the HTML
-min: 0;
-max: 100;
-value: 0;
-step: 1;
-*/ 
 }
 
 .lower-controls{
@@ -117,7 +110,6 @@ step: 1;
 	text-align:center;
 	border: 1px solid black;
 	border-radius:5%;
-
 }
 
 .mute{

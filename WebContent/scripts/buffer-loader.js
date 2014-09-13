@@ -1,18 +1,27 @@
 /*
  * from Getting Started with Web Audio API
  * http://www.html5rocks.com/en/tutorials/webaudio/intro/
+ * 
+ * Modified to use a hash instead of list.
  */
 
-function BufferLoader(context, urlList, callback) {
+function BufferLoader(context, urlHash, callback) {
   this.context = context;
-  this.urlList = urlList;
+  this.urlHash = urlHash;
   this.onload = callback;
-  this.bufferList = new Array();
+  this.bufferHash = {};
   this.loadCount = 0;
+  this.urlHashLength = 0;
+
+  var key;
+  for (key in urlHash){
+	  this.urlHashLength++;
+  }
 }
 
-BufferLoader.prototype.loadBuffer = function(url, index) {
-  // Load buffer asynchronously
+BufferLoader.prototype.loadBuffer = function(url, key) {
+
+	// Load buffer asynchronously
   var request = new XMLHttpRequest();
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
@@ -21,6 +30,7 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
 
   request.onload = function() {
     // Asynchronously decode the audio file data in request.response
+	  
     loader.context.decodeAudioData(
       request.response,
       function(buffer) {
@@ -28,9 +38,10 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
           alert('error decoding file data: ' + url);
           return;
         }
-        loader.bufferList[index] = buffer;
-        if (++loader.loadCount == loader.urlList.length)
-          loader.onload(loader.bufferList);
+        loader.bufferHash[key] = buffer;
+        if (++loader.loadCount == loader.urlHashLength) {
+        	loader.onload(loader.bufferHash);
+        }
       },
       function(error) {
         console.error('decodeAudioData error', error);
@@ -41,11 +52,12 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
   request.onerror = function() {
     alert('BufferLoader: XHR error');
   }
-
   request.send();
 }
 
 BufferLoader.prototype.load = function() {
-  for (var i = 0; i < this.urlList.length; ++i)
-  this.loadBuffer(this.urlList[i], i);
+    var key;
+	for (key in this.urlHash) {
+	  this.loadBuffer(this.urlHash[key], key);
+	}
 }
