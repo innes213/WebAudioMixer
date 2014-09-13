@@ -89,10 +89,10 @@ WebMixer.prototype.createMixerUI = function () {
 
 WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destination) {
 	if (source) {
-		console.log(source);
+		source.connect(channelStrip.analyserNode);
 	}
 	if (destination) {
-		console.log(destination);
+		channelStrip.muteNode.connect(destination);
 	}
 }
 
