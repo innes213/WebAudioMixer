@@ -11,7 +11,8 @@ var a;
 var bufferLoader;
 var bufferLoadCount = 0;	 
 var sourceHash = {};		// Hash of audio sources
-	
+var playing = false;
+var ready = false;
 //TODO: Create new loops
 var inputs = { drums:"./audio/drums.mp3",
               bass:"./audio/bass.mp3",
@@ -156,9 +157,9 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 
 	cs = this;
 	faderInput.min = '0';
-	faderInput.max = '707';
+	faderInput.max = '100';
 	faderInput.step = '1';
-	faderInput.value = '500'; //Unity
+	faderInput.value = '71'; // corresponds to unity;
 	faderInput.addEventListener('input', function(){mixer.channelStrips[desc].changeGain(this);});
 	
 	faderDiv.appendChild(faderInput);
@@ -210,26 +211,39 @@ function finishedLoading(bufferHash) {
 				
 		mixer.routeChannelStrip(mixer.channelStrips[key],sourceHash[key],mixer.channelStrips['master'].analyserNode);
 		
-		if (++bufferLoadCount == inputCount)
+		if (++bufferLoadCount == inputCount){
 			displayStatus("Ready!");
+			ready = true;
+		}
 	}
 }
-/*
 
-WebMixer.play = function() {
-	source.start(0);
-};
+function play() {
+	if (!playing && ready){
+		playing = true;
+		for (var key in sourceHash)
+			sourceHash[key].start(0);
+		displayStatue("Playing");
+	}
+}
 
-WebMixer.stop = function() {
-	source.stop();
-};
+function stop() {
+	playing = false;
+	for (var key in sourceHash)
+		sourceHash[key].stop();
+	displayStatus("Ready!");
+}
 
-*/
 ChannelStrip.prototype.changeGain = function(element) {
 	  var value = element.value;
-	  console.log(value);
-	  var fraction = parseInt(element.value) / parseInt(element.max); 
-	  this.gainNode.gain.value = 2 * fraction * fraction; // up to 6dB gain
+	  var gain;
+	  if (value == '71') // Dirty hack to get unity gain
+		  gain = 1;
+	  else {
+		  var fraction = parseInt(element.value) / parseInt(element.max); 
+		  gain = 2 * fraction * fraction; // up to 6dB gain
+	  }
+	  this.gainNode.gain.value = gain;
 	  console.log(this.key + " gain = " + (20 * log10(this.gainNode.gain.value)).toFixed(2) + " dB");
 }
 
