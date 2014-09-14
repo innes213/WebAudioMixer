@@ -81,12 +81,12 @@ a websafe color like I've used all over the place here.
 Position also absolute to the descendent, in this case which would
 be fader, which inherits from channel strip.*/
 
-/* Need to find equivalent instruction for other browsers
+/* Need to find equivalent instruction for other browsers */
 appearance: slider-vertical;
 -moz-appearance: slider-vertical;
 -o-appearance: slider-vertical;
-*/
 -webkit-appearance: slider-vertical;
+
 padding: initial;
 border: initial;
 margin: 15px;

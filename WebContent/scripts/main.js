@@ -72,6 +72,7 @@ WebMixer.prototype.addChannelStrip= function(context,label) {
 	// Update the mixer document object width
 	if (this.csWidth == 0) {
 		this.csWidth = $(".channel_strip").css("width");
+		// Remove the 'px' from the width attribute
 		this.csWidth = parseInt(this.csWidth.slice(0,this.csWidth.length - 2));
 	}
 	
@@ -99,6 +100,7 @@ WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destinatio
 function ChannelStrip(context,label) {
 	
 	// Create elements
+	this.key = label;
 	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
 	this.pannerNode = 0; //Not Implemented
 	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
@@ -112,7 +114,6 @@ function ChannelStrip(context,label) {
 	this.gainNode.connect(this.muteNode);
 	
 	// Set initial values
-	this.gainNode.gain.value = this.defaultGain;
 	this.muteNode.gain.value = 1;
 	
 	// Draw channel strip
@@ -121,6 +122,7 @@ function ChannelStrip(context,label) {
 
 ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	// Create channel strip UI
+	// TODO: use this.key and eliminate desc argument
 	/*
  		<div class="channel_strip" id="master">
 			<div class="meter">
@@ -151,11 +153,13 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	
 	faderInput = document.createElement('input');
 	faderInput.type = 'range';
-	faderInput.oninput = 'changeGain(this);';
+
+	cs = this;
 	faderInput.min = '0';
-	faderInput.max = '200';
+	faderInput.max = '707';
 	faderInput.step = '1';
-	faderInput.value = this.defaultGain.toString();
+	faderInput.value = '500'; //Unity
+	faderInput.addEventListener('input', function(){mixer.channelStrips[desc].changeGain(this);});
 	
 	faderDiv.appendChild(faderInput);
 	csDiv.appendChild(faderDiv);
@@ -190,7 +194,9 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	} else {
 		document.getElementById('mixer').insertBefore(csDiv,masterDiv);
 	}
+	this.changeGain(csDiv); // Make sure UI and AudioNode are in sync
 }
+
 
 function finishedLoading(bufferHash) {
 	
@@ -219,12 +225,19 @@ WebMixer.stop = function() {
 };
 
 */
-function changeGain(element) {
-	  var volume = element.value;
-	  var fraction = parseInt(element.value) / parseInt(element.max);
-	  gainNode.gain.value = math.pow(10,fraction);
-	  console.log(gainNode.gain.value);
+ChannelStrip.prototype.changeGain = function(element) {
+	  var value = element.value;
+	  console.log(value);
+	  var fraction = parseInt(element.value) / parseInt(element.max); 
+	  this.gainNode.gain.value = 2 * fraction * fraction; // up to 6dB gain
+	  console.log(this.key + " gain = " + (20 * log10(this.gainNode.gain.value)).toFixed(2) + " dB");
 }
+
+function log10(val) {
+	// This function is necessary because javascript is stupid. 
+	// Math.log() is base e. Uhh, shouldn't that be Math.ln()
+	  return Math.log(val) / Math.LN10;
+	}
 
 function displayStatus(message) {
 	var output = "Status: " + message;
