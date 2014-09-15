@@ -17,6 +17,10 @@ var ready = false;
 var inputs = { drums:"./audio/drums.mp3",
               bass:"./audio/bass.mp3",
               guitar:"./audio/guitar.mp3",
+              /*keys:"./audio/guitar.mp3",
+              vocals:"./audio/guitar.mp3",
+              strings:"./audio/guitar.mp3",
+              accordian:"./audio/guitar.mp3",*/
               horn:"./audio/horns.mp3"
 		};
 var inputCount = 0;
@@ -177,16 +181,19 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	
 	mButton = document.createElement('button');
 	mButton.className = 'mute';
-	mButton.Name = 'M';
+	//mButton.Name = 'M';
+	mButton.title = "mute";
 	mButton.appendChild(document.createTextNode('M'));
 	lcDiv.appendChild(mButton);
 	
-	sButton = document.createElement('button');
-	sButton.className = 'solo'
-	sButton.Name = 'S';
-	sButton.appendChild(document.createTextNode('S'));
-	lcDiv.appendChild(sButton);
-	
+	if(this.key != 'master') {
+		sButton = document.createElement('button');
+		sButton.className = 'solo'
+		//sButton.Name = 'S';
+		sButton.title = 'solo';
+		sButton.appendChild(document.createTextNode('S'));
+		lcDiv.appendChild(sButton);
+	}
 	csDiv.appendChild(lcDiv);
 	var masterDiv = document.getElementById('master');
 	if (!masterDiv) {
@@ -223,7 +230,7 @@ function play() {
 		playing = true;
 		for (var key in sourceHash)
 			sourceHash[key].start(0);
-		displayStatue("Playing");
+		displayStatus("Playing");
 	}
 }
 
@@ -237,14 +244,33 @@ function stop() {
 ChannelStrip.prototype.changeGain = function(element) {
 	  var value = element.value;
 	  var gain;
+	  
 	  if (value == '71') // Dirty hack to get unity gain
 		  gain = 1;
 	  else {
 		  var fraction = parseInt(element.value) / parseInt(element.max); 
 		  gain = 2 * fraction * fraction; // up to 6dB gain
 	  }
+	  
 	  this.gainNode.gain.value = gain;
-	  console.log(this.key + " gain = " + (20 * log10(this.gainNode.gain.value)).toFixed(2) + " dB");
+	  this.updateFaderUI();
+	  console.log(this.key + " gain = " + dBFS(this.gainNode.gain.value).toFixed(2) + " dB");
+}
+
+ChannelStrip.prototype.updateFaderUI = function() {
+	
+	var str = "";
+	if (this.gainNode.gain.value == 0)
+		str = "-inf";
+	else str = dBFS(this.gainNode.gain.value).toFixed(1) + "dB";
+	
+	//$("#"+this.key).attr("label",str);
+	$("#"+this.key).attr("title",str);
+	console.log(str);
+}
+
+function dBFS(val){
+	return (20 * log10(val));
 }
 
 function log10(val) {

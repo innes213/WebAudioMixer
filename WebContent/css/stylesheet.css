@@ -23,6 +23,7 @@ body {
 
 }
 .transport {
+	margin: 5px 0 5px 0;
 	background-color: #343434;
 	display: block;
 	padding: 10px;
@@ -44,10 +45,9 @@ body {
 }
 
 .channel_strip{
-/*	Line up everything horizontally, work as a container for your tools.*/
+/*	Line up everything horizontally, work as a container for controls.*/
 	background-color: #111111;
 	display: inline-block;
-	/*Position overlays over fixed element, like a layer.*/
 	position: relative;
 	width: 72px;
 	height: 300px; 
@@ -72,7 +72,7 @@ body {
 	margin: 0;
 }
 
-input[type="range"] {
+.fader input[type="range"] { 
 /*I discovered you had slider-horizontal, went out on a limb, it worked.
 Included moz, opera and default for cross bmixerser issues and
 noted I could take the styling out of the HTML for the stops and starts.
