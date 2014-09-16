@@ -72,7 +72,7 @@ function WebMixer(context) {
 
 WebMixer.prototype.addChannelStrip= function(context,label) {
 	// Create a channel strip and add it to the mixer
-	this.channelStrips[label] = new ChannelStrip(context,label);
+	this.channelStrips[label] = new ChannelStrip(context,this,label);
 	
 	// Update the mixer document object width
 	if (this.csWidth == 0) {
@@ -94,25 +94,38 @@ WebMixer.prototype.createMixerUI = function () {
 }
 
 WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destination) {
-	if (source) {
-		source.connect(channelStrip.analyserNode);
-	}
-	if (destination) {
-		channelStrip.muteNode.connect(destination);
-	}
+	if (source) 
+		this.connectChannelStripInput(channelStrip,source);
+	
+	if (destination)
+		this.connectChannelStripOutput(channelStrip, destination);
 }
 
-function ChannelStrip(context,label) {
+WebMixer.prototype.connectChannelStripInput = function (channelStrip, source) {
+	source.connect(channelStrip.analyserNode);
+}
+
+WebMixer.prototype.connectChannelStripOutput = function(channelStrip, destination) {
+	channelStrip.muteNode.connect(destination);
+}
+
+WebMixer.prototype.disconnectChannelStripOutput = function(channelStrip) {
+	channelStrip.muteNode.disconnect();
+}
+
+function ChannelStrip(context, mixer, label) {
 	
-	// Create elements
+	// Create AudioNodes
 	this.key = label;
+	this.mixer = mixer; // Reference to parent. Use with caution
 	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+	this.insertNodes = 0; // Not implemented. This will be an array of effects
 	this.pannerNode = 0; //Not Implemented
 	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
-	this.defaultGain = 0;
+	this.defaultGain = 1;
 	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
-	this.muted = false; //Not implemented
-	this.solod = false; //Not implemented
+	this.muted = false;
+	this.soloed = false;
 		
 	// Connect elements
 	this.analyserNode.connect(this.gainNode);
@@ -184,6 +197,9 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	//mButton.Name = 'M';
 	mButton.title = "mute";
 	mButton.appendChild(document.createTextNode('M'));
+	mButton.addEventListener('click', function(){
+		mixer.channelStrips[desc].mute(this);
+		});
 	lcDiv.appendChild(mButton);
 	
 	if(this.key != 'master') {
@@ -192,17 +208,23 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 		//sButton.Name = 'S';
 		sButton.title = 'solo';
 		sButton.appendChild(document.createTextNode('S'));
+		sButton.addEventListener('click', function(){
+			mixer.channelStrips[desc].solo(this);
+			});
 		lcDiv.appendChild(sButton);
 	}
 	csDiv.appendChild(lcDiv);
+	// Check of a master fader already exists, if so, insert before it
 	var masterDiv = document.getElementById('master');
 	if (!masterDiv) {
+		// NOTE: this won't fly if multiple mixers are supported
 		document.getElementById('mixer').appendChild(csDiv);
 		
 	} else {
 		document.getElementById('mixer').insertBefore(csDiv,masterDiv);
 	}
 	this.changeGain(csDiv); // Make sure UI and AudioNode are in sync
+	console.log(csDiv);
 }
 
 
@@ -254,7 +276,7 @@ ChannelStrip.prototype.changeGain = function(element) {
 	  
 	  this.gainNode.gain.value = gain;
 	  this.updateFaderUI();
-	  console.log(this.key + " gain = " + dBFS(this.gainNode.gain.value).toFixed(2) + " dB");
+	  //console.log(this.key + " gain = " + dBFS(this.gainNode.gain.value).toFixed(2) + " dB");
 }
 
 ChannelStrip.prototype.updateFaderUI = function() {
@@ -266,7 +288,58 @@ ChannelStrip.prototype.updateFaderUI = function() {
 	
 	//$("#"+this.key).attr("label",str);
 	$("#"+this.key).attr("title",str);
-	console.log(str);
+	//console.log(str);
+}
+
+ChannelStrip.prototype.mute = function(element){
+	this.muted = !this.muted;
+	
+	this.muted ? this.muteNode.gain.value = 0 : this.muteNode.gain.value = 1;
+	this.updateMuteUI(element);
+}
+
+ChannelStrip.prototype.updateMuteUI = function(element) {
+	// just set class name of button and set style in css
+	//var classStr;
+	//this.muted ? classStr = 'muted' : classStr = 'unmuted';
+	//element.className = classStr;
+	this.muted ? element.style.background = "#ff3333" : element.style.background = "#663333";
+}
+
+ChannelStrip.prototype.solo = function(element) {
+	//Soloing is actually a mixer level function even though it is triggered by the ChannelStrip UI
+	// TODO: Consider maintainting two lists of soloed (got this) and unsoloed so we don't have
+	// to interate through the entire list of channel strips every time
+	var index;
+	this.soloed = !this.soloed;
+	//console.log(this.mixer.soloChannels(this))
+	index = this.mixer.soloChannels.indexOf(this);
+	if (index == -1)
+		this.mixer.soloChannels.push(this);
+	else
+		this.mixer.soloChannels = this.mixer.soloChannels.splice(index, 1);
+	
+	// If any channels are solo'd, disconnect all outputs, connect solos
+	var destination = this.mixer.channelStrips['master'].analyserNode;
+	if (this.mixer.soloChannels != []){
+		for (var k in this.mixer.channelStrips)
+			if (k != 'master')
+				this.mixer.disconnectChannelStripOutput(this.mixer.channelStrips[k]);
+		this.mixer.soloChannels.forEach(function(channelStrip,index,array){
+			this.mixer.connectChannelStripOutput(channelStrip,destination);
+			});
+		}
+	else //Reconnect all channel strips to master
+		for (var k in this.mixer.channelStrips) // TODO: Consider making this a function
+			if (k != 'master')
+				this.mixer.connectChannelStripOutput(this.mixer.channelStrips[k], destination);
+	
+	this.updateSoloUI(element);
+			
+}
+
+ChannelStrip.prototype.updateSoloUI = function(element) {
+	this.soloed ? element.style.background = "#ffff33" : element.style.background = "#666633";
 }
 
 function dBFS(val){

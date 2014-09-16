@@ -113,7 +113,8 @@ height: 120px;
 }
 
 .mute{
-	position:absolute;
+	position:relative;
+	margin:0 10px 0 0;
 	bottom:5px;
 	left:5px;
 	color:#bbbbbb;
@@ -121,7 +122,8 @@ height: 120px;
 }
 
 .solo{
-	position:absolute;
+	position:relative;
+	margin: 0 0 0 10px;
 	bottom:5px;
 	right:5px;
 	color:#bbbbbb;
