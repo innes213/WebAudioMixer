@@ -62,6 +62,7 @@ function WebMixer(context) {
 	this.channelStrips = {};	// Hash table of channel strips
 	this.createMixerUI();
 	this.soloChannels = [];
+	this.soloBus = false; 
 	this.mixerWidth = 0;
 	this.csWidth = 0;
 
@@ -294,8 +295,14 @@ ChannelStrip.prototype.updateFaderUI = function() {
 ChannelStrip.prototype.mute = function(element){
 	this.muted = !this.muted;
 	
-	this.muted ? this.muteNode.gain.value = 0 : this.muteNode.gain.value = 1;
+	this.updateOutputNode();
 	this.updateMuteUI(element);
+}
+
+ChannelStrip.prototype.updateOutputNode = function() {
+	var isMuted;
+	isMuted = this.muted || (this.mixer.soloBus && !this.soloed);
+	isMuted ? this.muteNode.gain.value = 0 : this.muteNode.gain.value = 1;
 }
 
 ChannelStrip.prototype.updateMuteUI = function(element) {
@@ -308,32 +315,26 @@ ChannelStrip.prototype.updateMuteUI = function(element) {
 
 ChannelStrip.prototype.solo = function(element) {
 	//Soloing is actually a mixer level function even though it is triggered by the ChannelStrip UI
-	// TODO: Consider maintainting two lists of soloed (got this) and unsoloed so we don't have
 	// to interate through the entire list of channel strips every time
+	
 	var index;
 	this.soloed = !this.soloed;
+	
+	//Update list of solo'd channels
 	//console.log(this.mixer.soloChannels(this))
 	index = this.mixer.soloChannels.indexOf(this);
+	//console.log(index);
 	if (index == -1)
 		this.mixer.soloChannels.push(this);
 	else
-		this.mixer.soloChannels = this.mixer.soloChannels.splice(index, 1);
-	
-	// If any channels are solo'd, disconnect all outputs, connect solos
-	var destination = this.mixer.channelStrips['master'].analyserNode;
-	if (this.mixer.soloChannels != []){
-		for (var k in this.mixer.channelStrips)
-			if (k != 'master')
-				this.mixer.disconnectChannelStripOutput(this.mixer.channelStrips[k]);
-		this.mixer.soloChannels.forEach(function(channelStrip,index,array){
-			this.mixer.connectChannelStripOutput(channelStrip,destination);
-			});
-		}
-	else //Reconnect all channel strips to master
-		for (var k in this.mixer.channelStrips) // TODO: Consider making this a function
-			if (k != 'master')
-				this.mixer.connectChannelStripOutput(this.mixer.channelStrips[k], destination);
-	
+		this.mixer.soloChannels.splice(index,1);
+
+	this.mixer.soloBus = (this.mixer.soloChannels.length != 0);
+
+	// Update mute/solo node of all channels (except master)
+	for (var k in this.mixer.channelStrips)
+		if (k != 'master')
+			this.mixer.channelStrips[k].updateOutputNode();	
 	this.updateSoloUI(element);
 			
 }
