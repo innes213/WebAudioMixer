@@ -50,7 +50,7 @@ body {
 	display: inline-block;
 	position: relative;
 	width: 72px;
-	height: 300px; 
+	height: 320px; 
 
 }
 .meter{
@@ -62,8 +62,25 @@ body {
 	border-radius:5px;
 	background-color: #220022;
 }
+
+.panner{
+	background-color: #990099;
+	border-radius:6px;
+	border:1px solid #0f0f0f;
+	width: 70px;
+	height: 20px;
+	margin: 0;
+	padding:0px;	
+}
+
+.panner-slider {
+	/*padding: initial;
+	border: initial;*/
+	margin: 0 0 0 5px;
+	width: 60px;
+	height: 20px;
+}
 .fader{
-/*	in conjunction with the mixer positioning, you can specify coordinates.*/
 	background-color: #990099;
 	border-radius:6px;
 	border:1px solid #0f0f0f;
@@ -89,7 +106,7 @@ appearance: slider-vertical;
 
 padding: initial;
 border: initial;
-margin: 15px;
+margin: 15px 15px 15px 12px;
 width: 45px;
 height: 120px;
 }

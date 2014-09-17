@@ -51,7 +51,7 @@ function init() {
 			    );
 	  // Ideally this would be done after buffers are loaded but doing so 
 	  // creates the channel strips in an arbitrary order
-	  mixer.addChannelStrip(a,key); //TODO: addChannelStrip should return the strip
+	  mixer.addChannelStrip(a,key); 
 	  bufferLoader.load();
   }
   console.log(a.destination);
@@ -80,6 +80,7 @@ WebMixer.prototype.addChannelStrip= function(context,label) {
 		this.csWidth = $(".channel_strip").css("width");
 		// Remove the 'px' from the width attribute
 		this.csWidth = parseInt(this.csWidth.slice(0,this.csWidth.length - 2));
+		//return this.channelStrips[label];
 	}
 	
 	this.mixerWidth += this.csWidth;
@@ -136,12 +137,11 @@ function ChannelStrip(context, mixer, label) {
 	this.muteNode.gain.value = 1;
 	
 	// Draw channel strip
-	this.createChannelStripUI(label);
+	this.createChannelStripUI();
 } 
 
-ChannelStrip.prototype.createChannelStripUI = function(desc) {
+ChannelStrip.prototype.createChannelStripUI = function() {
 	// Create channel strip UI
-	// TODO: use this.key and eliminate desc argument
 	/*
  		<div class="channel_strip" id="master">
 			<div class="meter">
@@ -158,6 +158,8 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 			</div>
 		</div>
 	 */	
+	var desc = this.key;
+	
 	csDiv = document.createElement('div');
 	csDiv.className = 'channel_strip';
 	csDiv.id = desc.toLowerCase();
@@ -166,6 +168,21 @@ ChannelStrip.prototype.createChannelStripUI = function(desc) {
 	meterDiv.className = 'meter';
 	
 	csDiv.appendChild(meterDiv);
+	
+	pannerDiv = document.createElement("div");
+	pannerDiv.className = "panner";
+	
+	pannerInput = document.createElement("input");
+	pannerInput.className = 'panner-slider';
+	pannerInput.type = 'range';
+	pannerInput.min = '0';
+	pannerInput.max = '50';
+	pannerInput.step = '1';
+	pannerInput.value = '24';
+	//pannerInput.addEventListener('input', function(){mixer.channelStrips[desc].updatePan(this);});
+	
+	pannerDiv.appendChild(pannerInput);
+	csDiv.appendChild(pannerDiv);
 	
 	faderDiv = document.createElement('div');
 	faderDiv.className = 'fader';
