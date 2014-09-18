@@ -104,7 +104,7 @@ WebMixer.prototype.routeChannelStrip = function(channelStrip, source, destinatio
 }
 
 WebMixer.prototype.connectChannelStripInput = function (channelStrip, source) {
-	source.connect(channelStrip.analyserNode);
+	source.connect(channelStrip.inputNode);
 }
 
 WebMixer.prototype.connectChannelStripOutput = function(channelStrip, destination) {
@@ -120,9 +120,10 @@ function ChannelStrip(context, mixer, label) {
 	// Create AudioNodes
 	this.key = label;
 	this.mixer = mixer; // Reference to parent. Use with caution
+	this.inputNode = context.createGain? context.createGain() : context.createGainNode();
 	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
 	this.insertNodes = 0; // Not implemented. This will be an array of effects
-	this.pannerNode = 0; //Not Implemented
+	this.pannerNode = context.createPanner ? context.createPanner() : context.createPannerNode();
 	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.defaultGain = 1;
 	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
@@ -130,10 +131,19 @@ function ChannelStrip(context, mixer, label) {
 	this.soloed = false;
 		
 	// Connect elements
-	this.analyserNode.connect(this.gainNode);
+	this.inputNode.connect(this.analyserNode);
+	this.analyserNode.connect(this.pannerNode);
+	this.pannerNode.connect(this.gainNode);
 	this.gainNode.connect(this.muteNode);
 	
 	// Set initial values
+	this.inputNode.gain.value = 1;
+	/*
+	 * As of W3C Working Draft 11 September 2014
+	 * Panner node currently outputs 2 channels always
+	 */
+	this.pannerNode.PanningModeType = "equalpower";
+	this.pannerNode.setPosition(0,0,0);
 	this.muteNode.gain.value = 1;
 	
 	// Draw channel strip
@@ -175,11 +185,11 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	pannerInput = document.createElement("input");
 	pannerInput.className = 'panner-slider';
 	pannerInput.type = 'range';
-	pannerInput.min = '0';
-	pannerInput.max = '50';
+	pannerInput.min = '-45';
+	pannerInput.max = '45';
 	pannerInput.step = '1';
-	pannerInput.value = '24';
-	//pannerInput.addEventListener('input', function(){mixer.channelStrips[desc].updatePan(this);});
+	pannerInput.value = '0';
+	pannerInput.addEventListener('input', function(){mixer.channelStrips[desc].updatePan(this);});
 	
 	pannerDiv.appendChild(pannerInput);
 	csDiv.appendChild(pannerDiv);
@@ -280,7 +290,11 @@ function stop() {
 		sourceHash[key].stop();
 	displayStatus("Ready!");
 }
-
+ChannelStrip.prototype.updatePan = function(element) {
+	x = Math.sin(element.value * (Math.PI / 180));
+	this.pannerNode.setPosition(x, 0, 0);
+	element.title = element.value.toString();
+}
 ChannelStrip.prototype.changeGain = function(element) {
 	  var value = element.value;
 	  var gain;
