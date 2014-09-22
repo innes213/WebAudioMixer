@@ -33,6 +33,7 @@ function init() {
   // Fix up prefixing
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   a = new AudioContext();
+  console.log(a);
   
   // Create mixer
   displayStatus("Creating a mixer...")
@@ -54,7 +55,7 @@ function init() {
 	  mixer.addChannelStrip(a,key); 
 	  bufferLoader.load();
   }
-  console.log(a.destination);
+  //console.log(a.destination);
 }
 
 function finishedLoading(bufferHash) {
@@ -67,7 +68,7 @@ function finishedLoading(bufferHash) {
 		sourceHash[key].buffer = bufferHash[key];
 		displayStatus(key + " source loaded successfully");
 				
-		mixer.routeChannelStrip(mixer.channelStrips[key],sourceHash[key],mixer.channelStrips['master'].analyserNode);
+		mixer.routeChannelStrip(mixer.channelStrips[key],sourceHash[key],mixer.channelStrips[mixer.endpointDesc].inputNode);
 		
 		if (++bufferLoadCount == inputCount){
 			displayStatus("Ready!");

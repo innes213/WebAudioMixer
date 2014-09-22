@@ -7,10 +7,11 @@ function WebMixer(context, label) {
 	this.soloBus = false; 
 	this.mixerWidth = 0;
 	this.csWidth = 0;
-
+	this.endpointDesc = context.destination.channelInterpretation;
 	// Create a channel strip and add it to the hash
-	this.addChannelStrip(context,"master");
-	this.routeChannelStrip(this.channelStrips["master"], null, context.destination);
+	this.addChannelStrip(context,this.endpointDesc	);
+	this.routeChannelStrip(this.channelStrips[this.endpointDesc], null, context.destination);
+	console.log(this.endpointDesc);
 }
 
 WebMixer.prototype.addChannelStrip= function(context,label) {
@@ -31,8 +32,8 @@ WebMixer.prototype.addChannelStrip= function(context,label) {
 
 WebMixer.prototype.createMixerUI = function () {
 	// Insert mixer div
-	var mixDiv = document.createElement('div');
-	mixDiv.className = 'mixer';
+	var mixDiv = document.createElement("div");
+	mixDiv.className = "mixer";
 	mixDiv.id = this.id; 
 	document.getElementsByClassName('container')[0].appendChild(mixDiv);
 }
@@ -52,11 +53,11 @@ WebMixer.prototype.connectChannelStripInput = function (channelStrip, source) {
 WebMixer.prototype.connectChannelStripOutput = function(channelStrip, destination) {
 	channelStrip.muteNode.connect(destination);
 }
-
+/*
 WebMixer.prototype.disconnectChannelStripOutput = function(channelStrip) {
 	channelStrip.muteNode.disconnect();
 }
-
+*/
 function ChannelStrip(context, mixer, label) {
 	
 	// Create AudioNodes
@@ -172,7 +173,7 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 		});
 	lcDiv.appendChild(mButton);
 	
-	if(this.key != 'master') {
+	if(this.key != this.mixer.endpointDesc) {
 		sButton = document.createElement('button');
 		sButton.className = 'solo'
 		//sButton.Name = 'S';
@@ -185,9 +186,8 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	}
 	csDiv.appendChild(lcDiv);
 	// Check of a master fader already exists, if so, insert before it
-	var masterDiv = document.getElementById('master');
+	var masterDiv = document.getElementById(this.mixer.endpointDesc);
 	if (!masterDiv) {
-		// NOTE: this won't fly if multiple mixers are supported
 		document.getElementById(this.mixer.id).appendChild(csDiv);
 		
 	} else {
@@ -217,7 +217,7 @@ ChannelStrip.prototype.updatePan = function(element) {
 
 ChannelStrip.prototype.updatePanUI = function(element) {
 	
-	var str = "x: " + this.panXdeg + "deg, y: 0deg, z: " + this.panZdeg +"deg";
+	var str = "x: " + this.panXdeg + " deg, y: 0 deg, z: " + this.panZdeg + "deg";
 	element.title = str;
 	console.log(element);
 }
