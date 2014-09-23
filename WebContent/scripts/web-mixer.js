@@ -8,10 +8,11 @@ function WebMixer(context, label) {
 	this.mixerWidth = 0;
 	this.csWidth = 0;
 	this.endpointDesc = context.destination.channelInterpretation;
+	
 	// Create a channel strip and add it to the hash
 	this.addChannelStrip(context,this.endpointDesc	);
 	this.routeChannelStrip(this.channelStrips[this.endpointDesc], null, context.destination);
-	console.log(this.endpointDesc);
+
 }
 
 WebMixer.prototype.addChannelStrip= function(context,label) {
@@ -76,8 +77,7 @@ function ChannelStrip(context, mixer, label) {
 	this.faderGain = 1;
 	this.faderMin = 0;
 	this.faderMax = 100;
-	this.faderDefault = Math.round((this.faderMax - this.faderMin) / Math.sqrt(2)); 
-	console.log(this.faderDefault);
+	this.faderDefault = Math.round((this.faderMax - this.faderMin) / Math.sqrt(2)); // Unity
 	this.muted = false;
 	this.soloed = false;
 		
@@ -165,7 +165,6 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	
 	mButton = document.createElement('button');
 	mButton.className = 'mute';
-	//mButton.Name = 'M';
 	mButton.title = "mute";
 	mButton.appendChild(document.createTextNode('M'));
 	mButton.addEventListener('click', function(){
@@ -176,7 +175,6 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	if(this.key != this.mixer.endpointDesc) {
 		sButton = document.createElement('button');
 		sButton.className = 'solo'
-		//sButton.Name = 'S';
 		sButton.title = 'solo';
 		sButton.appendChild(document.createTextNode('S'));
 		sButton.addEventListener('click', function(){
@@ -194,14 +192,16 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 		document.getElementById('mixer').insertBefore(csDiv,masterDiv);
 	}
 	
-	console.log(csDiv);
+	//console.log(csDiv);
 }
 
 ChannelStrip.prototype.updatePan = function(element) {
 	
 	this.panXdeg = parseInt(element.value);
 	// According to SO post: http://stackoverflow.com/questions/14378305/how-to-create-very-basic-left-right-equal-power-panning-with-createpanner
-	// need to add z component for natual sound
+	// need to add z component for natural sound
+	// Still doesn't sound like a traditional panner but panner seems geared toward
+	// 3D sound.
 	this.panZdeg = 90 + this.panXdeg;
 	if (this.panZdeg > 90)
 		this.panZdeg = 180 - this.panZdeg;
@@ -211,6 +211,7 @@ ChannelStrip.prototype.updatePan = function(element) {
 	this.pannerNode.setPosition(x, 0, z);
 	
 	console.log(this.panXdeg + " : " + this.panZdeg);
+	
 	// Update UI element
 	this.updatePanUI(element);
 }
@@ -257,39 +258,38 @@ ChannelStrip.prototype.mute = function(element){
 
 ChannelStrip.prototype.updateOutputNode = function() {
 	var isMuted;
+
 	isMuted = this.muted || (this.mixer.soloBus && !this.soloed);
 	isMuted ? this.muteNode.gain.value = 0 : this.muteNode.gain.value = 1;
+	//console.log(isMuted);
 }
 
 ChannelStrip.prototype.updateMuteUI = function(element) {
-	// just set class name of button and set style in css
-	//var classStr;
-	//this.muted ? classStr = 'muted' : classStr = 'unmuted';
-	//element.className = classStr;
+
 	this.muted ? element.style.background = "#ff3333" : element.style.background = "#663333";
 }
 
 ChannelStrip.prototype.solo = function(element) {
 	//Soloing is actually a mixer level function even though it is triggered by the ChannelStrip UI
-	// to interate through the entire list of channel strips every time
 	
 	var index;
+
 	this.soloed = !this.soloed;
 	
 	//Update list of solo'd channels
-	//console.log(this.mixer.soloChannels(this))
 	index = this.mixer.soloChannels.indexOf(this);
-	//console.log(index);
+
 	if (index == -1)
 		this.mixer.soloChannels.push(this);
 	else
 		this.mixer.soloChannels.splice(index,1);
-
-	this.mixer.soloBus = (this.mixer.soloChannels.length != 0);
+	
+	// Update mixer soloBus boolean
+	this.mixer.soloBus = (this.mixer.soloChannels.length > 0);
 
 	// Update mute/solo node of all channels (except master)
 	for (var k in this.mixer.channelStrips)
-		if (k != 'master')
+		if (k != this.mixer.endpointDesc)
 			this.mixer.channelStrips[k].updateOutputNode();	
 	this.updateSoloUI(element);
 			
