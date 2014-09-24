@@ -1,6 +1,13 @@
-function WebMixer(context, label) {
+/*
+ * WebMixer web-mixer.js
+ * Rob Innes Hislop
+ * copyright 2014
+ */
+
+
+function WebMixer(context, id) {
 	
-	this.id = label;
+	this.id = id;
 	this.channelStrips = {};	// Hash table of channel strips
 	this.createMixerUI();
 	this.soloChannels = []; // This could be just a list of keys, not the whole 
@@ -59,10 +66,10 @@ WebMixer.prototype.disconnectChannelStripOutput = function(channelStrip) {
 	channelStrip.muteNode.disconnect();
 }
 */
-function ChannelStrip(context, mixer, label) {
+function ChannelStrip(context, mixer, id) {
 	
 	// Create AudioNodes
-	this.key = label;
+	this.id = id;
 	this.mixer = mixer; // Reference to parent. Use with caution
 	this.inputNode = context.createGain? context.createGain() : context.createGainNode();
 	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
@@ -71,7 +78,7 @@ function ChannelStrip(context, mixer, label) {
 	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
 	
-	// Set initial state 
+	// Set initial state, parameters 
 	this.panXdeg = 0;
 	this.panZdeg = 90;
 	this.faderGain = 1;
@@ -95,26 +102,31 @@ function ChannelStrip(context, mixer, label) {
 	 * Panner node currently outputs 2 channels always
 	 */
 	this.pannerNode.PanningModeType = "equalpower";
-	this.pannerNode.setPosition(0,0,1); //TODO: set programatically
-	this.muteNode.gain.value = 1; //TODO: Set programatically
+	this.pannerNode.setPosition(0,0,1); //TODO: set programmatically
+	this.muteNode.gain.value = 1; //TODO: Set programmatically
 	
 	// Draw channel strip
 	this.createChannelStripUI();
 } 
 
 ChannelStrip.prototype.createChannelStripUI = function() {
+	// TODO: Consider breaking channel strip into components
 	// Create channel strip UI
 	// Styles are set in CSS
-	var desc = this.key;
+	var desc = this.id;
 	
 	csDiv = document.createElement('div');
 	csDiv.className = 'channel_strip';
 	csDiv.id = desc.toLowerCase();
 	
+	// Meter
+	
 	meterDiv = document.createElement("div");
 	meterDiv.className = "meter";
 	
 	csDiv.appendChild(meterDiv);
+	
+	// Panner and pan control
 	
 	pannerDiv = document.createElement("div");
 	pannerDiv.className = "panner";
@@ -133,6 +145,8 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	
 	pannerDiv.appendChild(pannerInput);
 	csDiv.appendChild(pannerDiv);
+	
+	// Fader and fader control
 	
 	faderDiv = document.createElement("div");
 	faderDiv.className = "fader";
@@ -153,46 +167,57 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	faderDiv.appendChild(faderInput);
 	csDiv.appendChild(faderDiv);
 	
-	lcDiv = document.createElement('div');
-	lcDiv.className = 'lower-controls';
+	// Lower controls
 	
-	labelDiv = document.createElement('div');
-	labelDiv.className = 'label';
+	lcDiv = document.createElement("div");
+	lcDiv.className = "lower-controls";
+	
+	// Label
+	
+	labelDiv = document.createElement("div");
+	labelDiv.className = "label";
 	
 	labelP = document.createTextNode(desc.toUpperCase());
 	labelDiv.appendChild(labelP);
 	lcDiv.appendChild(labelDiv);
 	
-	mButton = document.createElement('button');
-	mButton.className = 'mute';
+	// Mute button
+	
+	mButton = document.createElement("button");
+	mButton.className = "mute";
 	mButton.title = "mute";
-	mButton.appendChild(document.createTextNode('M'));
-	mButton.addEventListener('click', function(){
+	mButton.appendChild(document.createTextNode("M"));
+	mButton.addEventListener("click", function(){
 		mixer.channelStrips[desc].mute(this);
 		});
 	lcDiv.appendChild(mButton);
 	
+	// Solo button
+	
 	if(this.key != this.mixer.endpointDesc) {
-		sButton = document.createElement('button');
-		sButton.className = 'solo'
-		sButton.title = 'solo';
-		sButton.appendChild(document.createTextNode('S'));
+		sButton = document.createElement("button");
+		sButton.className = "solo"
+		sButton.title = "solo";
+		sButton.appendChild(document.createTextNode("S"));
 		sButton.addEventListener('click', function(){
 			mixer.channelStrips[desc].solo(this);
 			});
 		lcDiv.appendChild(sButton);
 	}
 	csDiv.appendChild(lcDiv);
+	
+	
+	// Place channel strip in mixer
 	// Check of a master fader already exists, if so, insert before it
 	var masterDiv = document.getElementById(this.mixer.endpointDesc);
 	if (!masterDiv) {
-		document.getElementById(this.mixer.id).appendChild(csDiv);
-		
-	} else {
+		document.getElementById(this.mixer.id).appendChild(csDiv);		
+	} 
+	else {
 		document.getElementById('mixer').insertBefore(csDiv,masterDiv);
 	}
 	
-	//console.log(csDiv);
+	console.log(csDiv);
 }
 
 ChannelStrip.prototype.updatePan = function(element) {
@@ -270,13 +295,12 @@ ChannelStrip.prototype.updateMuteUI = function(element) {
 }
 
 ChannelStrip.prototype.solo = function(element) {
-	//Soloing is actually a mixer level function even though it is triggered by the ChannelStrip UI
+	// Soloing is actually a mixer level function even though it is triggered by the ChannelStrip UI
 	
-	var index;
-
 	this.soloed = !this.soloed;
 	
 	//Update list of solo'd channels
+	var index;
 	index = this.mixer.soloChannels.indexOf(this);
 
 	if (index == -1)
@@ -304,7 +328,7 @@ function dBFS(val){
 }
 
 function log10(val) {
-	// This function is necessary because javascript is stupid. 
-	// Math.log() is base e. Uhh, shouldn't that be Math.ln()
+	// Helper function to deal with the fact that
+	// javascript log() function is base e
 	  return Math.log(val) / Math.LN10;
 	}

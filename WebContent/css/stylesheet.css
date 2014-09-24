@@ -89,14 +89,7 @@ body {
 	margin: 0;
 }
 
-.fader input[type="range"] { 
-/*I discovered you had slider-horizontal, went out on a limb, it worked.
-Included moz, opera and default for cross bmixerser issues and
-noted I could take the styling out of the HTML for the stops and starts.
-You could also specify color with a hexidecimal (eg. #e2e2e2) or
-a websafe color like I've used all over the place here.
-Position also absolute to the descendent, in this case which would
-be fader, which inherits from channel strip.*/
+.fader-slider { 
 
 /* Need to find equivalent instruction for other browsers */
 appearance: slider-vertical;
