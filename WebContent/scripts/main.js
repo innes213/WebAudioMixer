@@ -6,10 +6,15 @@
  */
 
 window.onload = init;
-var a;
-var bufferLoader;
+
+var a;						//AudioContext instance
+var bufferLoader;			
 var bufferLoadCount = 0;	 
 var sourceHash = {};		// Hash of audio sources
+
+var mixer = 0;				// Mixer instance
+
+// Transport variables
 var playing = false;
 var ready = false;
 var startTime = 0;
@@ -27,9 +32,6 @@ var inputs = { drums:"./audio/drums.mp3",
 		};
 var inputCount = 0;
 
-var mixer = 0;
-
-
 function init() {
   // Fix up prefixing
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -37,8 +39,7 @@ function init() {
   if (!a){
 	  alert("This browser does not support Web Audio API");
   } else {
-	  console.log(a);
-	  
+
 	  // Count number of sources
 	  for (var key in inputs)
 			inputCount++;
@@ -68,6 +69,7 @@ function init() {
 }
 
 function finishedLoading(bufferHash) {
+// Callback for bufferLoader
 	
 	// Create sources and connect to channel strips.
 	var key;
@@ -99,12 +101,13 @@ function play(element) {
 	} else if (!playing && ready) {
 		playing = true;
 		element.firstChild.data = "Pause";
-		// Check to see if playing has started
 		
+		// Update startTime
 		startTime = a.currentTime;
 
 		for (var key in sourceHash){
 			mixer.connectChannelStripInput(mixer.channelStrips[key],sourceHash[key]);
+			// AudioSource.start() can only be called once!
 			if (playTime == 0)
 				sourceHash[key].start(playTime);
 		}
@@ -115,6 +118,7 @@ function play(element) {
 function stop() {
 	playing = false;
 	for (var key in sourceHash)
+		// Stop destroys the graph
 		sourceHash[key].stop();
 	displayStatus("Graph is destroyed. Reload page to restart.");
 }

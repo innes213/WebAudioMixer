@@ -17,14 +17,14 @@ function WebMixer(context, id) {
 	this.endpointDesc = context.destination.channelInterpretation;
 	
 	// Create a channel strip and add it to the hash
-	this.addChannelStrip(context,this.endpointDesc	);
+	this.addChannelStrip(context,this.endpointDesc);
 	this.routeChannelStrip(this.channelStrips[this.endpointDesc], null, context.destination);
 
 }
 
-WebMixer.prototype.addChannelStrip= function(context,label) {
+WebMixer.prototype.addChannelStrip= function(context,id) {
 	// Create a channel strip and add it to the mixer
-	this.channelStrips[label] = new ChannelStrip(context,this,label);
+	this.channelStrips[id] = new ChannelStrip(context,this,id);
 	
 	// Update the mixer document object width
 	if (this.csWidth == 0) {
@@ -66,33 +66,53 @@ WebMixer.prototype.disconnectChannelStripOutput = function(channelStrip) {
 	channelStrip.muteNode.disconnect();
 }
 */
+
+function FFTMeter(context){
+	
+	this.animationRunning = false;
+	this.CANVAS_WIDTH = $(".meter").css("width");
+	this.CANVAS_HEIGHT = $(".meter").css("height");
+	this.numBands = 16; // Best if numBands is power of 2
+	this.rectWidth = Math.floor(this.CANVAS_WIDTH / this.numBands);
+	
+	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+}
+
+FFTMeter.prototype.connect = function(audioNode) {
+	this.analyserNode.connect(audioNode)
+}
+
 function ChannelStrip(context, mixer, id) {
 	
 	// Create AudioNodes
 	this.id = id;
 	this.mixer = mixer; // Reference to parent. Use with caution
 	this.inputNode = context.createGain? context.createGain() : context.createGainNode();
-	this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+	//this.analyserNode = context.createAnalyser ? context.createAnalyser() : context.createAnalyserNode();
+	this.fftMeter = new FFTMeter(context);
 	this.insertNodes = 0; // Not implemented. This will be an array of effects
 	this.pannerNode = context.createPanner ? context.createPanner() : context.createPannerNode();
-	this.gainNode = context.createGain ? context.createGain() : context.createGainNode();
+	this.faderNode = context.createGain ? context.createGain() : context.createGainNode();
 	this.muteNode = context.createGain ? context.createGain() : context.createGainNode();
 	
 	// Set initial state, parameters 
 	this.panXdeg = 0;
 	this.panZdeg = 90;
+	
 	this.faderGain = 1;
 	this.faderMin = 0;
 	this.faderMax = 100;
-	this.faderDefault = Math.round((this.faderMax - this.faderMin) / Math.sqrt(2)); // Unity
+	this.faderUnity = Math.round((this.faderMax - this.faderMin) / Math.sqrt(2)); // Unity
+	this.faderDefault = this.faderUnity;
 	this.muted = false;
 	this.soloed = false;
 		
 	// Connect elements
-	this.inputNode.connect(this.analyserNode);
-	this.analyserNode.connect(this.pannerNode);
-	this.pannerNode.connect(this.gainNode);
-	this.gainNode.connect(this.muteNode);
+	this.inputNode.connect(this.fftMeter.analyserNode);
+	//this.analyserNode.connect(this.pannerNode);
+	this.fftMeter.connect(this.pannerNode);
+	this.pannerNode.connect(this.faderNode);
+	this.faderNode.connect(this.muteNode);
 	
 	// Set initial values
 	// TODO: This is dangerous as defaults may not equal UI settings. Redo this
@@ -158,7 +178,7 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	faderInput.min = this.faderMin.toString();
 	faderInput.max = this.faderMax.toString();
 	faderInput.step = "1";
-	faderInput.value = this.faderDefault; // corresponds to unity;
+	faderInput.value = this.faderDefault;
 	faderInput.addEventListener("input", function(){
 		mixer.channelStrips[desc].updateGain(this);
 		});
@@ -194,7 +214,7 @@ ChannelStrip.prototype.createChannelStripUI = function() {
 	
 	// Solo button
 	
-	if(this.key != this.mixer.endpointDesc) {
+	if(this.id != this.mixer.endpointDesc) {
 		sButton = document.createElement("button");
 		sButton.className = "solo"
 		sButton.title = "solo";
@@ -245,20 +265,20 @@ ChannelStrip.prototype.updatePanUI = function(element) {
 	
 	var str = "x: " + this.panXdeg + " deg, y: 0 deg, z: " + this.panZdeg + "deg";
 	element.title = str;
-	console.log(element);
+	//console.log(element);
 }
 ChannelStrip.prototype.updateGain = function(element) {
 	  var value = element.value;
 	  var gain;
 	  
-	  if (value == this.faderDefault) // Dirty hack to get unity gain
+	  if (value == this.faderUnity) // Dirty hack to get unity gain
 		  gain = 1;
 	  else {
 		  var fraction = parseInt(element.value) / parseInt(element.max); 
 		  gain = 2 * fraction * fraction; // up to 6dB gain
 	  }
 	  
-	  this.gainNode.gain.value = gain;
+	  this.faderNode.gain.value = gain;
 	  this.updateFaderUI(element);
 	  //console.log(this.key + " gain = " + dBFS(this.gainNode.gain.value).toFixed(2) + " dB");
 }
@@ -266,9 +286,9 @@ ChannelStrip.prototype.updateGain = function(element) {
 ChannelStrip.prototype.updateFaderUI = function(element) {
 	
 	var str = "";
-	if (this.gainNode.gain.value == 0)
+	if (this.faderNode.gain.value == 0)
 		str = "-inf";
-	else str = dBFS(this.gainNode.gain.value).toFixed(1) + "dB";
+	else str = dBFS(this.faderNode.gain.value).toFixed(1) + "dB";
 	
 	element.title = str;
 	console.log(element);
@@ -286,7 +306,7 @@ ChannelStrip.prototype.updateOutputNode = function() {
 
 	isMuted = this.muted || (this.mixer.soloBus && !this.soloed);
 	isMuted ? this.muteNode.gain.value = 0 : this.muteNode.gain.value = 1;
-	//console.log(isMuted);
+	//console.log("Muted: " + isMuted);
 }
 
 ChannelStrip.prototype.updateMuteUI = function(element) {
