@@ -105,13 +105,16 @@ function play(element) {
 		// Update startTime
 		startTime = a.currentTime;
 
-		for (var key in sourceHash){
+		for (var key in sourceHash) {
 			mixer.connectChannelStripInput(mixer.channelStrips[key],sourceHash[key]);
 			// AudioSource.start() can only be called once!
-			if (playTime == 0)
+			if (playTime == 0) {
 				sourceHash[key].start(playTime);
-		}
+				updateAnimation(0);
+			}
 		displayStatus("Playing");
+		}
+		
 	}
 }
 
@@ -123,6 +126,19 @@ function stop() {
 	displayStatus("Graph is destroyed. Reload page to restart.");
 }
 
+function updateAnimation(time){
+
+    var rAF = window.requestAnimationFrame ||
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame ||
+              window.msRequestAnimationFrame;
+    rAF( updateAnimation );
+
+    // Place all animation functions here
+    // Update meters
+	for (var k in mixer.channelStrips)
+		mixer.channelStrips[k].fftMeter.updateFFTMeter();
+}
 
 function displayStatus(message) {
 	var output = "Status: " + message;
