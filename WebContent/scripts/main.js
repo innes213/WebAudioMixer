@@ -21,14 +21,18 @@ var startTime = 0;
 var playTime = 0;
 
 //TODO: Create new loops
-var inputs = { drums:"./audio/drums.mp3",
-              bass:"./audio/bass.mp3",
-              guitar:"./audio/guitar.mp3",
-              /*keys:"./audio/guitar.mp3",
-              vocals:"./audio/guitar.mp3",
-              strings:"./audio/guitar.mp3",
-              accordian:"./audio/guitar.mp3",*/
-              horn:"./audio/horns.mp3"
+var inputs = { clip_clop:"./audio/Percussion/clip_clop.mp3",
+              tambo:"./audio/Percussion/tambourine.mp3",
+              bells:"./audio/Percussion/jingle_bells.mp3",
+              shaker:"./audio/Percussion/shaker.mp3",
+              bass:"./audio/Vox-Uke-Banjo-Bass/bass.mp3",
+              banjo:"./audio/Vox-Uke-Banjo-Bass/banjo.mp3",
+              uke:"./audio/Vox-Uke-Banjo-Bass/ukulele.mp3",
+              vox:"./audio/Vox-Uke-Banjo-Bass/vox.mp3",
+              acoustic:"./audio/Haskel_Guitars/acoustic_guitar.mp3",
+              guitar:"./audio/Haskel_Guitars/guitar.mp3",
+              guitar2:"./audio/Haskel_Guitars/guitar2.mp3",
+              slide:"./audio/Haskel_Guitars/slide_guitar.mp3"
 		};
 var inputCount = 0;
 
